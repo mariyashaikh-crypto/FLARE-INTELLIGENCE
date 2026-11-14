@@ -1,102 +1,105 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import TopNav from './components/common/TopNav.jsx';
+import Sidebar from './components/common/Sidebar.jsx';
+import OverviewView from './components/dashboard/OverviewView.jsx';
+import PlaceholderView from './components/dashboard/PlaceholderView.jsx';
+import {
+  checkHealth,
+  fetchCombustionSummary,
+  fetchCombustionExperiments
+} from './services/api.js';
 import './App.css';
 
-function App() {
-  const [healthStatus, setHealthStatus] = useState(null);
-  const [combustionSummary, setCombustionSummary] = useState(null);
+export default function App() {
+  const [activeView, setActiveView] = useState('overview');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Real backend telemetry state
+  const [health, setHealth] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [experiments, setExperiments] = useState({});
   const [loading, setLoading] = useState(true);
+  const [lastRefreshed, setLastRefreshed] = useState(Date.now());
 
-  useEffect(() => {
-    // 1. Verify health endpoint
-    fetch('/api/health')
-      .then((res) => res.json())
-      .then((data) => {
-        setHealthStatus(data);
-      })
-      .catch((err) => {
-        console.error('Failed to reach backend health endpoint:', err);
-        setHealthStatus({ status: 'offline', message: 'Backend unreachable' });
-      });
+  const loadTelemetry = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Fetch health endpoint
+      try {
+        const healthData = await checkHealth();
+        setHealth(healthData);
+      } catch (err) {
+        console.error('Failed to reach /api/health:', err);
+        setHealth({ status: 'offline', message: 'Backend unreachable' });
+      }
 
-    // 2. Fetch combustion dataset configuration summary
-    fetch('/api/combustion/summary')
-      .then((res) => res.json())
-      .then((data) => {
-        setCombustionSummary(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.warn('Combustion summary endpoint check:', err);
-        setLoading(false);
-      });
+      // Fetch dataset configuration summary
+      try {
+        const summaryData = await fetchCombustionSummary();
+        setSummary(summaryData);
+      } catch (err) {
+        console.warn('Combustion summary error:', err);
+      }
+
+      // Fetch combustion experiments metadata
+      try {
+        const expData = await fetchCombustionExperiments();
+        if (expData?.experiments) {
+          setExperiments(expData.experiments);
+        }
+      } catch (err) {
+        console.warn('Combustion experiments error:', err);
+      }
+    } finally {
+      setLoading(false);
+      setLastRefreshed(Date.now());
+    }
   }, []);
 
+  useEffect(() => {
+    loadTelemetry();
+  }, [loadTelemetry]);
+
   return (
-    <div className="container">
-      <header className="header">
-        <h1>FLARE INTELLIGENCE</h1>
-        <p className="subtitle">
-          NASA &quot;Flame in Freefall&quot; Challenge — Microgravity Combustion Science Platform
-        </p>
-      </header>
+    <div className="mission-dashboard-shell">
+      {/* Top Mission Control Bar */}
+      <TopNav
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+        health={health}
+        summary={summary}
+        loading={loading}
+        onRefresh={loadTelemetry}
+      />
 
-      <main className="content">
-        {/* Backend Health Status Card (Preserved & Verified) */}
-        <div className="card">
-          <h2>Backend Health Status</h2>
-          {healthStatus ? (
-            <div className="status-info">
-              <p>
-                <strong>Status:</strong>{' '}
-                <span className={healthStatus.status === 'ok' ? 'badge-ok' : 'badge-error'}>
-                  {healthStatus.status}
-                </span>
-              </p>
-              {healthStatus.message && (
-                <p>
-                  <strong>Message:</strong> {healthStatus.message}
-                </p>
-              )}
-              {healthStatus.timestamp && (
-                <p>
-                  <strong>Timestamp:</strong> {healthStatus.timestamp}
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="status-text">Checking /api/health...</p>
-          )}
-        </div>
+      <div className="dashboard-main-layout">
+        {/* Collapsible Sidebar */}
+        <Sidebar
+          activeView={activeView}
+          onSelectView={(viewId) => setActiveView(viewId)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+          summary={summary}
+        />
 
-        {/* Dataset Path Configuration Card */}
-        <div className="card" style={{ marginTop: '1.5rem' }}>
-          <h2>NASA Combustion Datasets Configuration</h2>
-          {loading ? (
-            <p className="status-text">Detecting dataset path...</p>
-          ) : (
-            <div className="status-info">
-              <p>
-                <strong>Domain:</strong> Microgravity Combustion Science (BASS-II, FLEX, SAFFIRE-I, SPICE, E-FIELD Flames)
-              </p>
-              <p>
-                <strong>Configured Folder:</strong>{' '}
-                <code>{combustionSummary?.configuredPath || 'Desktop/FLARE_INTELLIGENCE_DATA'}</code>
-              </p>
-              <p>
-                <strong>Dataset Folder Status:</strong>{' '}
-                <span className={combustionSummary?.pathExists ? 'badge-ok' : 'badge-warn'}>
-                  {combustionSummary?.pathExists ? 'Connected' : 'Pending Folder Creation'}
-                </span>
-              </p>
-              <p>
-                <strong>Datasets Indexed:</strong> {combustionSummary?.totalDatasetsFound || 0} file(s)
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+        {/* Viewport Content Area */}
+        <main className="dashboard-viewport">
+          <div className="viewport-inner">
+            {activeView === 'overview' ? (
+              <OverviewView
+                experiments={experiments}
+                summary={summary}
+                health={health}
+                loading={loading}
+                onRefresh={loadTelemetry}
+                onSelectExperiment={() => setActiveView('experiments')}
+              />
+            ) : (
+              <PlaceholderView viewId={activeView} />
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
-
-export default App;
