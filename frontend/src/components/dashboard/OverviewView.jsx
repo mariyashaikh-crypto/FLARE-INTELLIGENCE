@@ -12,6 +12,7 @@ import {
 import MetricCard from './MetricCard.jsx';
 import ExperimentCard from './ExperimentCard.jsx';
 import DatasetStatusBanner from './DatasetStatusBanner.jsx';
+import OverviewHeroSection from './OverviewHeroSection.jsx';
 import { COMBUSTION_METRICS } from '../../constants/combustionConstants.js';
 
 export default function OverviewView({
@@ -28,18 +29,11 @@ export default function OverviewView({
 
   return (
     <div className="overview-view">
-      {/* Header telemetry brief */}
-      <div className="view-intro">
-        <div className="intro-badge">
-          <span className="live-indicator" />
-          <span>MISSION CONTROL TELEMETRY</span>
-        </div>
-        <h1 className="intro-heading">NASA Flame in Freefall Intelligence</h1>
-        <p className="intro-sub">
-          Continuous telemetry, flammability limits, and microgravity combustion dynamics across
-          the International Space Station and Cygnus autonomous flight vehicles.
-        </p>
-      </div>
+      {/* 3D Interactive Earth Hero Section */}
+      <OverviewHeroSection
+        summary={summary}
+        onExplorePrograms={onSelectExperiment}
+      />
 
       {/* Top Telemetry KPI Row */}
       <div className="kpi-grid">

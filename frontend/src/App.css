@@ -399,6 +399,205 @@
 /* --------------------------------------------------------------------------
    Overview View
    -------------------------------------------------------------------------- */
+.overview-hero-section {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  min-height: 480px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 75% 50%, rgba(0, 240, 255, 0.09) 0%, rgba(13, 23, 46, 0.85) 50%, rgba(3, 6, 17, 0.95) 100%);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  margin-bottom: 1.75rem;
+  overflow: hidden;
+}
+
+.hero-3d-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.interactive-earth-container {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.interactive-earth-container:active {
+  cursor: grabbing;
+}
+
+.hero-hud-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 10;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(3, 6, 17, 0.95) 0%,
+    rgba(3, 6, 17, 0.85) 42%,
+    rgba(3, 6, 17, 0.4) 65%,
+    transparent 85%
+  );
+  display: flex;
+  align-items: center;
+  padding: 2.25rem 2.5rem;
+}
+
+.hud-left {
+  max-width: 620px;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.mission-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.65rem;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid var(--cyan-border);
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--cyan-neon);
+  font-family: var(--font-mono);
+  margin-bottom: 0.85rem;
+  width: fit-content;
+}
+
+.pulsing-beacon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--orange-flame);
+  box-shadow: 0 0 8px var(--orange-flame);
+  animation: beacon-pulse 1.8s infinite ease-in-out;
+}
+
+@keyframes beacon-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.8); }
+}
+
+.hero-title {
+  font-size: 2.35rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-pure);
+  line-height: 1.15;
+  margin-bottom: 0.85rem;
+}
+
+.title-gradient {
+  background: linear-gradient(135deg, var(--cyan-neon) 0%, var(--orange-flame) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-narrative {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.35rem;
+}
+
+.orbital-metrics-ribbon {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+  margin-bottom: 1.15rem;
+}
+
+.telemetry-box {
+  background: rgba(6, 11, 23, 0.75);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(8px);
+}
+
+.telemetry-box .label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.telemetry-box .val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.telemetry-box .sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.platforms-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.platform-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 4px;
+  background: rgba(13, 23, 46, 0.8);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.pill-dot-cyan {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan-neon);
+  box-shadow: 0 0 5px var(--cyan-neon);
+}
+
+.pill-dot-orange {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orange-flame);
+  box-shadow: 0 0 5px var(--orange-flame);
+}
+
+.interaction-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.hint-icon {
+  color: var(--cyan-bright);
+}
+
 .view-intro {
   margin-bottom: 1.75rem;
 }
@@ -1124,6 +1323,30 @@
     display: none;
   }
 
+  .overview-hero-section {
+    height: auto;
+    min-height: 520px;
+  }
+
+  .hero-hud-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(3, 6, 17, 0.92) 0%,
+      rgba(3, 6, 17, 0.75) 60%,
+      rgba(3, 6, 17, 0.95) 100%
+    );
+    padding: 1.5rem;
+    position: relative;
+  }
+
+  .orbital-metrics-ribbon {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-3d-stage {
+    opacity: 0.65;
+  }
+
   .mission-sidebar.expanded {
     width: 200px;
     min-width: 200px;
@@ -1139,6 +1362,14 @@
 }
 
 @media (max-width: 640px) {
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .orbital-metrics-ribbon {
+    grid-template-columns: 1fr;
+  }
+
   .mission-sidebar {
     position: absolute;
     top: 56px;
