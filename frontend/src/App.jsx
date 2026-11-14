@@ -2,6 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import TopNav from './components/common/TopNav.jsx';
 import Sidebar from './components/common/Sidebar.jsx';
 import OverviewView from './components/dashboard/OverviewView.jsx';
+import ExperimentsView from './components/dashboard/ExperimentsView.jsx';
+import SearchView from './components/dashboard/SearchView.jsx';
+import CompareView from './components/dashboard/CompareView.jsx';
+import ElectricFieldView from './components/dashboard/ElectricFieldView.jsx';
+import GravityAnalysisView from './components/dashboard/GravityAnalysisView.jsx';
+import FireSafetyView from './components/dashboard/FireSafetyView.jsx';
+import IncidentsView from './components/dashboard/IncidentsView.jsx';
 import PlaceholderView from './components/dashboard/PlaceholderView.jsx';
 import {
   checkHealth,
@@ -121,7 +128,7 @@ export default function App() {
         {/* Viewport Content Area */}
         <main className="dashboard-viewport">
           <div className="viewport-inner">
-            {activeView === 'overview' ? (
+            {activeView === 'overview' && (
               <OverviewView
                 experiments={experiments}
                 experimentalData={experimentalData}
@@ -133,9 +140,43 @@ export default function App() {
                 onRefresh={loadTelemetry}
                 onSelectExperiment={() => setActiveView('experiments')}
               />
-            ) : (
-              <PlaceholderView viewId={activeView} />
             )}
+            {activeView === 'experiments' && (
+              <ExperimentsView
+                experiments={experiments}
+                experimentalData={experimentalData}
+                activities={activities}
+                summary={summary}
+              />
+            )}
+            {activeView === 'search' && (
+              <SearchView
+                experiments={experiments}
+                experimentalData={experimentalData}
+                highlights={highlights}
+                activities={activities}
+                summary={summary}
+              />
+            )}
+            {activeView === 'compare' && <CompareView />}
+            {activeView === 'electric-field' && (
+              <ElectricFieldView experimentalData={experimentalData} />
+            )}
+            {activeView === 'gravity-analysis' && <GravityAnalysisView />}
+            {activeView === 'fire-safety' && <FireSafetyView />}
+            {activeView === 'incidents' && <IncidentsView />}
+
+            {/* Fallback for unrecognized views */}
+            {![
+              'overview',
+              'experiments',
+              'search',
+              'compare',
+              'electric-field',
+              'gravity-analysis',
+              'fire-safety',
+              'incidents'
+            ].includes(activeView) && <PlaceholderView viewId={activeView} />}
           </div>
         </main>
       </div>
