@@ -52,6 +52,39 @@ export async function fetchCombustionSummary() {
 }
 
 /**
+ * Fetch actual NASA published experimental benchmark series
+ */
+export async function fetchExperimentalData() {
+  const response = await fetch(`${BASE_URL}/combustion/experimental-data`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch experimental data: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetch NASA combustion science research highlights & breakthroughs
+ */
+export async function fetchResearchHighlights() {
+  const response = await fetch(`${BASE_URL}/combustion/highlights`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch research highlights: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetch peer-reviewed research publications, technical reports & citations
+ */
+export async function fetchResearchActivities() {
+  const response = await fetch(`${BASE_URL}/combustion/research-activity`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch research activity: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
  * Backward compatibility alias for combustion datasets
  * @deprecated Use fetchCombustionDatasets instead
  */

@@ -4,19 +4,25 @@ import {
   Orbit,
   Layers,
   Database,
-  ShieldCheck,
-  Zap,
   Activity,
-  Compass
+  Compass,
+  FileSpreadsheet
 } from 'lucide-react';
 import MetricCard from './MetricCard.jsx';
 import ExperimentCard from './ExperimentCard.jsx';
 import DatasetStatusBanner from './DatasetStatusBanner.jsx';
 import OverviewHeroSection from './OverviewHeroSection.jsx';
+import LiveDatasetAvailability from './LiveDatasetAvailability.jsx';
+import ExperimentalChartsSection from './ExperimentalChartsSection.jsx';
+import ResearchHighlights from './ResearchHighlights.jsx';
+import ResearchActivitySection from './ResearchActivitySection.jsx';
 import { COMBUSTION_METRICS } from '../../constants/combustionConstants.js';
 
 export default function OverviewView({
   experiments = {},
+  experimentalData = {},
+  highlights = [],
+  activities = [],
   summary = null,
   health = null,
   loading = false,
@@ -26,16 +32,17 @@ export default function OverviewView({
   const experimentList = Object.values(experiments);
   const totalDatasets = summary?.totalDatasetsFound ?? 0;
   const isConnected = summary?.pathExists;
+  const experimentsCount = summary?.experimentsCount || {};
 
   return (
     <div className="overview-view">
-      {/* 3D Interactive Earth Hero Section */}
+      {/* 1. 3D Interactive Earth Hero Section */}
       <OverviewHeroSection
         summary={summary}
         onExplorePrograms={onSelectExperiment}
       />
 
-      {/* Top Telemetry KPI Row */}
+      {/* 2. Top Telemetry KPI Row */}
       <div className="kpi-grid">
         <MetricCard
           title="ACTIVE NASA PROGRAMS"
@@ -86,20 +93,26 @@ export default function OverviewView({
         />
       </div>
 
-      {/* Dataset Connection Banner */}
-      <DatasetStatusBanner
+      {/* 3. Live Dataset Availability & Per-Experiment Matrix (Requirement 2) */}
+      <LiveDatasetAvailability
         summary={summary}
         loading={loading}
         onRefresh={onRefresh}
       />
 
-      {/* NASA Combustion Experiments Catalog Grid */}
+      {/* 4. Interactive Charts Using Actual Available Experimental Data (Requirement 4) */}
+      <ExperimentalChartsSection
+        datasets={experimentalData}
+        summary={summary}
+      />
+
+      {/* 5. Core NASA Microgravity Combustion Overview Cards (Requirement 1) */}
       <div className="dashboard-section">
         <div className="section-header">
           <div className="header-left">
             <h2 className="section-title">Core NASA Microgravity Combustion Programs</h2>
             <p className="section-subtitle">
-              Fundamental combustion science and spacecraft fire safety programs hosted on orbit.
+              Expandable experiment cards with facility codes, fuels, key variables, and live file counts.
             </p>
           </div>
           <span className="section-count">
@@ -113,7 +126,7 @@ export default function OverviewView({
               <ExperimentCard
                 key={exp.id || exp.name}
                 experiment={exp}
-                onSelect={onSelectExperiment}
+                fileCount={experimentsCount[exp.name] ?? experimentsCount[exp.name?.split(' / ')[0]] ?? 0}
               />
             ))
           ) : (
@@ -125,8 +138,14 @@ export default function OverviewView({
         </div>
       </div>
 
-      {/* Diagnostic Combustion Metrics Reference */}
-      <div className="dashboard-section">
+      {/* 6. Combustion Research Highlights (Requirement 3) */}
+      <ResearchHighlights highlights={highlights} />
+
+      {/* 7. Recent Research Activity & Source References (Requirement 5) */}
+      <ResearchActivitySection activities={activities} />
+
+      {/* 8. Diagnostic Combustion Parameters Reference Table */}
+      <div className="dashboard-section" style={{ marginTop: '2.5rem' }}>
         <div className="section-header">
           <div className="header-left">
             <h2 className="section-title">Microgravity Combustion Diagnostic Parameters</h2>

@@ -6,7 +6,10 @@ import PlaceholderView from './components/dashboard/PlaceholderView.jsx';
 import {
   checkHealth,
   fetchCombustionSummary,
-  fetchCombustionExperiments
+  fetchCombustionExperiments,
+  fetchExperimentalData,
+  fetchResearchHighlights,
+  fetchResearchActivities
 } from './services/api.js';
 import './App.css';
 
@@ -18,13 +21,16 @@ export default function App() {
   const [health, setHealth] = useState(null);
   const [summary, setSummary] = useState(null);
   const [experiments, setExperiments] = useState({});
+  const [experimentalData, setExperimentalData] = useState({});
+  const [highlights, setHighlights] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(Date.now());
 
   const loadTelemetry = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch health endpoint
+      // 1. Fetch health endpoint
       try {
         const healthData = await checkHealth();
         setHealth(healthData);
@@ -33,7 +39,7 @@ export default function App() {
         setHealth({ status: 'offline', message: 'Backend unreachable' });
       }
 
-      // Fetch dataset configuration summary
+      // 2. Fetch dataset configuration summary
       try {
         const summaryData = await fetchCombustionSummary();
         setSummary(summaryData);
@@ -41,7 +47,7 @@ export default function App() {
         console.warn('Combustion summary error:', err);
       }
 
-      // Fetch combustion experiments metadata
+      // 3. Fetch combustion experiments metadata
       try {
         const expData = await fetchCombustionExperiments();
         if (expData?.experiments) {
@@ -49,6 +55,36 @@ export default function App() {
         }
       } catch (err) {
         console.warn('Combustion experiments error:', err);
+      }
+
+      // 4. Fetch NASA published experimental datasets
+      try {
+        const dataRes = await fetchExperimentalData();
+        if (dataRes?.datasets) {
+          setExperimentalData(dataRes.datasets);
+        }
+      } catch (err) {
+        console.warn('Experimental datasets error:', err);
+      }
+
+      // 5. Fetch research highlights
+      try {
+        const hlRes = await fetchResearchHighlights();
+        if (hlRes?.highlights) {
+          setHighlights(hlRes.highlights);
+        }
+      } catch (err) {
+        console.warn('Highlights error:', err);
+      }
+
+      // 6. Fetch scholarly research activity & source references
+      try {
+        const actRes = await fetchResearchActivities();
+        if (actRes?.activities) {
+          setActivities(actRes.activities);
+        }
+      } catch (err) {
+        console.warn('Research activities error:', err);
       }
     } finally {
       setLoading(false);
@@ -88,6 +124,9 @@ export default function App() {
             {activeView === 'overview' ? (
               <OverviewView
                 experiments={experiments}
+                experimentalData={experimentalData}
+                highlights={highlights}
+                activities={activities}
                 summary={summary}
                 health={health}
                 loading={loading}
