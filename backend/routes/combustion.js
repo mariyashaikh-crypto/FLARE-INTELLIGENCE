@@ -442,7 +442,7 @@ router.get('/summary', (req, res) => {
       status: 'ok',
       challenge: 'NASA Flame in Freefall',
       domain: 'Microgravity Combustion Science',
-      configuredPath: pathInfo.path,
+      configuredPath: pathInfo.displayPath || pathInfo.path,
       pathSource: pathInfo.source,
       pathExists: pathInfo.exists,
       totalDatasetsFound: scanResult.totalFiles,

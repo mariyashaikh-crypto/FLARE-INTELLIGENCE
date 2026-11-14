@@ -8,6 +8,25 @@ const __dirname = path.dirname(__filename);
 const LOCAL_WORKSPACE_DATA = path.resolve(__dirname, '../../data');
 
 /**
+ * Sanitize local filesystem paths for production API output
+ * Prevents leaking private usernames, home directory paths or server structure
+ * @param {string} rawPath 
+ * @returns {string} Sanitized display path
+ */
+export function sanitizePathForDisplay(rawPath) {
+  if (!rawPath) return '';
+  if (process.env.NODE_ENV === 'production') {
+    const home = os.homedir();
+    if (rawPath.startsWith(home)) {
+      return rawPath.replace(home, '~');
+    }
+    // Also sanitize generic drive/user patterns
+    return rawPath.replace(/^[A-Za-z]:\\[Uu]sers\\[^\\]+/, '~');
+  }
+  return rawPath;
+}
+
+/**
  * Resolve the active dataset directory path.
  * Priority:
  * 1. Process environment variable (FLARE_DATASET_PATH or DATASET_PATH)
@@ -17,16 +36,20 @@ const LOCAL_WORKSPACE_DATA = path.resolve(__dirname, '../../data');
  */
 export function resolveDatasetPath() {
   if (process.env.FLARE_DATASET_PATH && fs.existsSync(process.env.FLARE_DATASET_PATH)) {
+    const resolved = path.resolve(process.env.FLARE_DATASET_PATH);
     return {
-      path: path.resolve(process.env.FLARE_DATASET_PATH),
+      path: resolved,
+      displayPath: sanitizePathForDisplay(resolved),
       source: 'environment_variable (FLARE_DATASET_PATH)',
       exists: true
     };
   }
 
   if (process.env.DATASET_PATH && fs.existsSync(process.env.DATASET_PATH)) {
+    const resolved = path.resolve(process.env.DATASET_PATH);
     return {
-      path: path.resolve(process.env.DATASET_PATH),
+      path: resolved,
+      displayPath: sanitizePathForDisplay(resolved),
       source: 'environment_variable (DATASET_PATH)',
       exists: true
     };
@@ -36,6 +59,7 @@ export function resolveDatasetPath() {
   if (fs.existsSync(standardDesktop)) {
     return {
       path: standardDesktop,
+      displayPath: sanitizePathForDisplay(standardDesktop),
       source: 'desktop_folder',
       exists: true
     };
@@ -45,6 +69,7 @@ export function resolveDatasetPath() {
   if (fs.existsSync(oneDriveDesktop)) {
     return {
       path: oneDriveDesktop,
+      displayPath: sanitizePathForDisplay(oneDriveDesktop),
       source: 'onedrive_desktop_folder',
       exists: true
     };
@@ -53,12 +78,14 @@ export function resolveDatasetPath() {
   // Fallback to configured path even if not yet created on disk
   const preferredPath = process.env.FLARE_DATASET_PATH || standardDesktop;
   const workspaceFallbackExists = fs.existsSync(LOCAL_WORKSPACE_DATA);
+  const activePath = workspaceFallbackExists ? LOCAL_WORKSPACE_DATA : preferredPath;
 
   return {
-    path: workspaceFallbackExists ? LOCAL_WORKSPACE_DATA : preferredPath,
+    path: activePath,
+    displayPath: sanitizePathForDisplay(activePath),
     source: workspaceFallbackExists ? 'workspace_fallback' : 'desktop_default',
     exists: workspaceFallbackExists,
-    preferredPath
+    preferredPath: sanitizePathForDisplay(preferredPath)
   };
 }
 
@@ -149,16 +176,22 @@ export function scanDatasets() {
 
   walkSync(dirInfo.path);
 
+  const displayDir = dirInfo.displayPath || dirInfo.path;
   return {
-    datasetDir: dirInfo.path,
+    datasetDir: displayDir,
     exists: true,
     source: dirInfo.source,
     totalFiles: filesList.length,
     files: filesList,
     experimentsCount,
-    message: `Indexed ${filesList.length} combustion dataset file(s) from ${dirInfo.path}`
+    message: `Indexed ${filesList.length} combustion dataset file(s) from ${displayDir}`
   };
 }
+
+/**
+ * Maximum authorized dataset file size for in-memory inspection (10 MB)
+ */
+const MAX_DATASET_FILE_BYTES = 10 * 1024 * 1024;
 
 /**
  * Read-only file inspection for authorized combustion dataset files
@@ -166,6 +199,10 @@ export function scanDatasets() {
  * @returns {any}
  */
 export function readDatasetFile(relativeFilePath) {
+  if (!relativeFilePath || typeof relativeFilePath !== 'string') {
+    throw new Error('Invalid file path parameter');
+  }
+
   const dirInfo = resolveDatasetPath();
   const safePath = path.resolve(dirInfo.path, relativeFilePath);
 
@@ -175,7 +212,12 @@ export function readDatasetFile(relativeFilePath) {
   }
 
   if (!fs.existsSync(safePath)) {
-    throw new Error(`Dataset file not found: ${relativeFilePath}`);
+    throw new Error(`Dataset file not found: ${path.basename(relativeFilePath)}`);
+  }
+
+  const stats = fs.statSync(safePath);
+  if (stats.size > MAX_DATASET_FILE_BYTES) {
+    throw new Error('Dataset file exceeds maximum allowed inspection limit (10MB)');
   }
 
   const content = fs.readFileSync(safePath, 'utf-8');

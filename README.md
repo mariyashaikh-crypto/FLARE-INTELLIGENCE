@@ -82,46 +82,96 @@ The backend is configured to read your external NASA combustion datasets from yo
 
 ## Running the Applications
 
-### 1. Start the Backend Server
+### Development Mode
 
-From the `backend` directory:
-
+**Backend** (from project root):
 ```bash
 cd backend
 npm run dev
 ```
+> Starts with `nodemon` for auto-reload on file changes. URL: `http://localhost:5000`
 
-* Standard production start: `npm start`
-* URL: `http://localhost:5000`
-* Health Check: `http://localhost:5000/api/health`
-* Combustion Summary: `http://localhost:5000/api/combustion/summary`
-* Experiment Catalog: `http://localhost:5000/api/combustion/experiments`
-* Dataset Index: `http://localhost:5000/api/combustion/datasets`
-
-### 2. Start the Frontend Development Server
-
-From the `frontend` directory:
-
+**Frontend** (from project root):
 ```bash
 cd frontend
 npm run dev
 ```
+> Vite dev server with HMR at `http://localhost:5173`. All `/api` calls are proxied to the backend.
 
-* URL: `http://localhost:5173`
-* Vite automatically proxies `/api` calls to the Express backend at `http://localhost:5000`.
+### Production Mode
+
+**Backend:**
+```bash
+cd backend
+npm start
+# Or with explicit environment:
+NODE_ENV=production PORT=5000 CORS_ORIGIN=https://your-domain.com node server.js
+```
+
+**Frontend build:**
+```bash
+cd frontend
+npm run build
+# Output: frontend/dist/ — serve with any static file server
+```
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `5000` | Backend server port |
+| `NODE_ENV` | `development` | `development` or `production` (controls CORS, error detail, HSTS) |
+| `CORS_ORIGIN` | *(all origins in dev)* | Comma-separated allowed frontend origins in production, e.g. `https://your-domain.com` |
+| `FRONTEND_ORIGIN` | *(alias for CORS_ORIGIN)* | Alternative env var name for allowed frontend origin |
+| `FLARE_DATASET_PATH` | `~/Desktop/FLARE_INTELLIGENCE_DATA` | Absolute path to local NASA dataset folder |
+
+Set via `.env` file in the project root (copy from `.env.example`), or as shell environment variables.
+
+---
+
+## Running Backend Tests
+
+The backend ships with an automated test suite covering all API endpoints (zero external dependencies — uses Node.js built-in `node:test`):
+
+```bash
+cd backend
+npm test
+# Or from project root:
+npm test --prefix backend
+```
+
+Expected output: **8/8 tests pass**, exit code 0. Tests cover:
+1. `GET /api/health` — status, message, security headers
+2. `GET /api/combustion/summary` — schema, experiment list, path status
+3. `GET /api/combustion/experiments` — full metadata catalog for all 5 experiments
+4. `GET /api/combustion/experimental-data` — published NASA benchmark datasets
+5. `GET /api/combustion/highlights` — research highlights with citations
+6. `GET /api/combustion/research-activity` — scholarly DOI-linked activities
+7. `GET /api/combustion/datasets` — dataset directory scanner
+8. `GET /api/nonexistent-route` — safe 404 JSON response
 
 ---
 
 ## API Endpoints
 
-- `GET /api/health`: Confirms backend server operational status:
-  ```json
-  {
-    "status": "ok",
-    "message": "FLARE INTELLIGENCE backend server is running",
-    "timestamp": "2026-11-14T04:20:00.000Z"
-  }
-  ```
-- `GET /api/combustion/summary`: Returns configured dataset path, connection status, and file counts per experiment.
-- `GET /api/combustion/experiments`: Returns detailed scientific metadata for BASS-II, FLEX, SAFFIRE-I, SPICE, and E-FIELD Flames.
-- `GET /api/combustion/datasets`: Recursively indexes all available dataset files (`.csv`, `.json`, `.txt`, `.tsv`, `.dat`) in read-only mode.
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Backend status, environment, timestamp |
+| `GET` | `/api/combustion/summary` | Dataset path, connection status, file counts per experiment |
+| `GET` | `/api/combustion/experiments` | Scientific metadata for BASS-II, FLEX, SAFFIRE-I, SPICE, E-FIELD Flames |
+| `GET` | `/api/combustion/experimental-data` | Published NASA benchmark datasets (chart-ready series) |
+| `GET` | `/api/combustion/highlights` | Key research highlights and breakthroughs |
+| `GET` | `/api/combustion/research-activity` | Scholarly publications with DOIs |
+| `GET` | `/api/combustion/datasets` | Recursive index of all local dataset files (read-only) |
+
+**Health check response example:**
+```json
+{
+  "status": "ok",
+  "message": "FLARE INTELLIGENCE backend server is running",
+  "environment": "development",
+  "timestamp": "2026-11-14T04:20:00.000Z"
+}
+```
