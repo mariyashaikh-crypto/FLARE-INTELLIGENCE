@@ -158,7 +158,9 @@ export default function App() {
                 summary={summary}
               />
             )}
-            {activeView === 'compare' && <CompareView />}
+            {activeView === 'compare' && (
+              <CompareView experimentalData={experimentalData} />
+            )}
             {activeView === 'electric-field' && (
               <ElectricFieldView experimentalData={experimentalData} />
             )}

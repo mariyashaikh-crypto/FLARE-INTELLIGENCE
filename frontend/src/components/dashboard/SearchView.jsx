@@ -183,10 +183,27 @@ export default function SearchView({
     });
   }, [searchIndex, query, selectedExp, selectedCategory, sortBy]);
 
-  const copyCitation = (text, id) => {
-    navigator.clipboard?.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2500);
+  const copyCitation = async (text, id) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2500);
+    } catch (err) {
+      console.warn('Clipboard copy fallback:', err);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
   };
 
   const SUGGESTED_QUERIES = [

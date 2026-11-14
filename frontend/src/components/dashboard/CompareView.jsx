@@ -129,32 +129,47 @@ const PHENOMENA_DATA = [
   }
 ];
 
-// Normalized comparative metrics chart data
+// Normalized comparative metrics chart data (1.0 = Earth 1g Baseline)
 const COMPARATIVE_METRICS_DATA = [
-  { metric: 'Flame Width (Norm)', terrestrial1g: 1.0, microgravity0g: 2.4, unit: 'x relative' },
-  { metric: 'Soot Residence Time', terrestrial1g: 1.0, microgravity0g: 1.85, unit: 'x relative' },
-  { metric: 'Flicker Frequency', terrestrial1g: 12.5, microgravity0g: 0.0, unit: 'Hz (Instability)' },
-  { metric: 'Min Quench Velocity', terrestrial1g: 0.0, microgravity0g: 1.5, unit: 'cm/s (Radiative)' },
-  { metric: 'Droplet Burning K', terrestrial1g: 0.95, microgravity0g: 0.76, unit: 'mm²/s' }
+  { metric: 'Flame Width Ratio', terrestrial1g: 1.0, microgravity0g: 2.4, detail: '1g narrow plume (1.0x) vs 0g expanded dome (2.4x)' },
+  { metric: 'Soot Residence Multiplier', terrestrial1g: 1.0, microgravity0g: 1.85, detail: '15–25 ms in 1g vs 35–50 ms in 0g (40–85% increase)' },
+  { metric: 'Flame Standoff Distance', terrestrial1g: 1.0, microgravity0g: 2.1, detail: 'Thicker diffusive boundary layer pushes reaction zone outward' },
+  { metric: 'Radiative Heat Loss', terrestrial1g: 1.0, microgravity0g: 2.6, detail: 'Large soot agglomerates emit ~2.6x higher radiative fraction' },
+  { metric: 'Burning Rate Constant K', terrestrial1g: 1.0, microgravity0g: 0.8, detail: 'Pure diffusive burning in 0g without buoyant convective acceleration' }
 ];
 
-// Heptane Droplet d² Law Comparison Series
-const DROPLET_D2_SERIES = [
-  { time: 0.0, d2_1g: 4.00, d2_0g: 4.00, note: 'Ignition' },
-  { time: 0.8, d2_1g: 3.20, d2_0g: 3.38, note: 'Quasi-steady hot' },
-  { time: 1.6, d2_1g: 2.40, d2_0g: 2.76, note: 'Hot burning' },
-  { time: 2.4, d2_1g: 1.60, d2_0g: 2.25, note: '0g Hot Extinction / Cool Flame Ignition' },
-  { time: 3.2, d2_1g: 0.80, d2_0g: 1.84, note: '0g Cool Flame Burning' },
-  { time: 4.0, d2_1g: 0.00, d2_0g: 1.43, note: '1g Burnout | 0g Cool Flame continues' },
-  { time: 4.8, d2_1g: 0.00, d2_0g: 1.05, note: '0g Final Radiative Extinction' },
-  { time: 5.4, d2_1g: 0.00, d2_0g: 0.85, note: '0g Extinguished Residual Droplet' }
+// Reference Heptane Droplet d² Law Comparison Series (Initial d0 = 2.0 mm, d0² = 4.00 mm²)
+const DEFAULT_DROPLET_SERIES = [
+  { time: 0.0, d2_1g: 4.00, d2_0g: 4.00, regime: 'Hot Flame Ignition' },
+  { time: 0.6, d2_1g: 3.43, d2_0g: 3.53, regime: 'Quasi-Steady Hot Burning' },
+  { time: 1.2, d2_1g: 2.86, d2_0g: 3.07, regime: 'Quasi-Steady Hot Burning' },
+  { time: 1.8, d2_1g: 2.29, d2_0g: 2.61, regime: 'Hot Flame Radiative Extinction' },
+  { time: 2.4, d2_1g: 1.72, d2_0g: 2.25, regime: 'Cool Flame Transition (600–800 K)' },
+  { time: 3.0, d2_1g: 1.15, d2_0g: 1.94, regime: 'Sustained Cool Flame Stage' },
+  { time: 3.8, d2_1g: 0.39, d2_0g: 1.53, regime: 'Sustained Cool Flame Stage' },
+  { time: 4.6, d2_1g: 0.00, d2_0g: 1.13, regime: 'Final Radiative Extinction' },
+  { time: 5.2, d2_1g: 0.00, d2_0g: 0.85, regime: 'Extinguished Droplet Residual' }
 ];
 
-export default function CompareView() {
+export default function CompareView({ experimentalData = {} }) {
   const [selectedPhenomenonId, setSelectedPhenomenonId] = useState('droplet-combustion');
 
   const activePhenomenon =
     PHENOMENA_DATA.find((p) => p.id === selectedPhenomenonId) || PHENOMENA_DATA[0];
+
+  // Dynamic droplet curve bound to backend flight benchmark if available
+  const flexSeries = experimentalData['flex']?.series;
+  const dropletChartData = (flexSeries && flexSeries.length > 0)
+    ? flexSeries.map((pt) => {
+        const d2_1g = Math.max(0, +(4.00 - 0.95 * pt.timeSeconds).toFixed(2));
+        return {
+          time: pt.timeSeconds,
+          d2_1g,
+          d2_0g: pt.dSquared,
+          regime: pt.regime
+        };
+      })
+    : DEFAULT_DROPLET_SERIES;
 
   return (
     <div className="combustion-compare-view">
@@ -362,7 +377,7 @@ export default function CompareView() {
           <div className="chart-wrap-box">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart
-                data={DROPLET_D2_SERIES}
+                data={dropletChartData}
                 margin={{ top: 15, right: 15, left: -10, bottom: 25 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.07)" />

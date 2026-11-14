@@ -52,11 +52,15 @@ export default function ExperimentsView({
 }) {
   const [activeExpId, setActiveExpId] = useState('bass-ii');
 
-  // Find metadata: either by key in experiments or by lowercase id match
+  // Find metadata: either by exact key, id match, or designation substring
   const expMetadata =
     experiments[activeExpId] ||
     Object.values(experiments).find(
-      (e) => e.id === activeExpId || e.name?.toLowerCase().includes(activeExpId.replace('-', ''))
+      (e) =>
+        e.id === activeExpId ||
+        e.id === `${activeExpId}-flames` ||
+        e.name?.toLowerCase().includes(activeExpId.toLowerCase()) ||
+        (activeExpId === 'e-field' && (e.name?.toLowerCase().includes('e-field') || e.id?.includes('e-field')))
     ) || {
       name: activeExpId.toUpperCase(),
       fullName: 'NASA Microgravity Combustion Experiment',
@@ -76,14 +80,17 @@ export default function ExperimentsView({
     experimentsCount[expMetadata.name?.split(' / ')[0]] ??
     0;
 
-  // Filter activities for this experiment
+  // Filter activities for this experiment across all 5 programs
   const relatedActivities = activities.filter((act) => {
     const actExp = (act.experiment || '').toLowerCase();
     const curId = activeExpId.toLowerCase();
     return (
       actExp.includes(curId) ||
       (curId === 'e-field' && actExp.includes('e-field')) ||
-      (curId === 'saffire-i' && actExp.includes('saffire'))
+      (curId === 'saffire-i' && actExp.includes('saffire')) ||
+      (curId === 'bass-ii' && actExp.includes('bass')) ||
+      (curId === 'flex' && actExp.includes('flex')) ||
+      (curId === 'spice' && actExp.includes('spice'))
     );
   });
 

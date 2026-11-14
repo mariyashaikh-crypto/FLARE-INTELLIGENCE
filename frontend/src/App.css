@@ -4821,3 +4821,30 @@
     text-align: center;
   }
 }
+
+/* Data fidelity indicator chips */
+.slider-value-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.data-fidelity-chip {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.data-fidelity-chip.fidelity-measured {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--emerald-border);
+  color: var(--emerald-live);
+}
+
+.data-fidelity-chip.fidelity-interp {
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid var(--cyan-border);
+  color: var(--cyan-neon);
+}

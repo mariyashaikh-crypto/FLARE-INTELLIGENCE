@@ -19,7 +19,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
+  ReferenceLine
 } from 'recharts';
 
 // Preset configurations for realistic space environments
@@ -147,8 +148,10 @@ export default function GravityAnalysisView() {
   const chartData = useMemo(() => {
     return calculations.map((c) => ({
       name: c.name.split(' ')[0],
-      Grashof: Math.log10(Math.max(c.Gr, 1)).toFixed(1),
-      Richardson: Math.log10(Math.max(c.Ri, 0.0001)).toFixed(1),
+      Grashof: parseFloat(Math.log10(Math.max(c.Gr, 1)).toFixed(2)),
+      Richardson: parseFloat(Math.log10(Math.max(c.Ri, 0.0001)).toFixed(2)),
+      rawRi: c.RiFormatted,
+      rawGr: c.GrScientific,
       gVal: c.gVal
     }));
   }, [calculations]);
@@ -311,19 +314,33 @@ export default function GravityAnalysisView() {
               margin={{ top: 20, right: 30, left: 10, bottom: 25 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.07)" />
+              <ReferenceLine y={0} stroke="rgba(255, 255, 255, 0.25)" strokeDasharray="3 3" />
               <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
               <YAxis
                 stroke="#64748b"
                 tick={{ fill: '#94a3b8', fontSize: 11 }}
-                label={{ value: 'Log₁₀(Dimensionless Number)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 11 }}
+                label={{ value: 'Log₁₀(Dimensionless Scale)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 11 }}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: '#0a1122',
-                  borderColor: 'rgba(0, 240, 255, 0.3)',
-                  color: '#f8fafc',
-                  borderRadius: '6px',
-                  fontSize: '12px'
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div style={{
+                        backgroundColor: '#0a1122',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        borderRadius: '6px',
+                        padding: '0.65rem 0.85rem',
+                        fontSize: '12px',
+                        fontFamily: 'monospace'
+                      }}>
+                        <div style={{ fontWeight: 700, color: '#f8fafc', marginBottom: '0.25rem' }}>{label} Gravity ({data.gVal} m/s²)</div>
+                        <div style={{ color: '#38bdf8' }}>Grashof: {data.rawGr} (Log₁₀ = {data.Grashof})</div>
+                        <div style={{ color: '#ff6b00' }}>Richardson: {data.rawRi} (Log₁₀ = {data.Richardson})</div>
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
               <Legend verticalAlign="top" height={32} />
