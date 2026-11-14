@@ -1,13 +1,14 @@
+
 /**
  * FLARE INTELLIGENCE - Frontend API Service Client
  * NASA "Flame in Freefall" Microgravity Combustion Intelligence Platform
  */
 
-const BASE_URL = '/api';
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+const BASE_URL = `${API_ORIGIN}/api`;
 
 /**
  * Check backend health status
- * @returns {Promise<{status: string, message: string, timestamp: string}>}
  */
 export async function checkHealth() {
   const response = await fetch(`${BASE_URL}/health`);
@@ -18,8 +19,7 @@ export async function checkHealth() {
 }
 
 /**
- * Fetch reference metadata for NASA's 5 microgravity combustion experiments
- * (BASS-II, FLEX, SAFFIRE-I, SPICE, E-FIELD Flames)
+ * Fetch metadata for NASA's 5 microgravity combustion experiments
  */
 export async function fetchCombustionExperiments() {
   const response = await fetch(`${BASE_URL}/combustion/experiments`);
@@ -30,7 +30,7 @@ export async function fetchCombustionExperiments() {
 }
 
 /**
- * Fetch list of indexed combustion datasets from configured Desktop/local path
+ * Fetch indexed combustion datasets
  */
 export async function fetchCombustionDatasets() {
   const response = await fetch(`${BASE_URL}/combustion/datasets`);
@@ -41,7 +41,7 @@ export async function fetchCombustionDatasets() {
 }
 
 /**
- * Fetch summary statistics of dataset coverage across experiments
+ * Fetch dataset coverage summary
  */
 export async function fetchCombustionSummary() {
   const response = await fetch(`${BASE_URL}/combustion/summary`);
@@ -52,7 +52,7 @@ export async function fetchCombustionSummary() {
 }
 
 /**
- * Fetch actual NASA published experimental benchmark series
+ * Fetch NASA published experimental benchmark series
  */
 export async function fetchExperimentalData() {
   const response = await fetch(`${BASE_URL}/combustion/experimental-data`);
@@ -63,7 +63,7 @@ export async function fetchExperimentalData() {
 }
 
 /**
- * Fetch NASA combustion science research highlights & breakthroughs
+ * Fetch NASA combustion science research highlights
  */
 export async function fetchResearchHighlights() {
   const response = await fetch(`${BASE_URL}/combustion/highlights`);
@@ -74,7 +74,7 @@ export async function fetchResearchHighlights() {
 }
 
 /**
- * Fetch peer-reviewed research publications, technical reports & citations
+ * Fetch research publications and technical reports
  */
 export async function fetchResearchActivities() {
   const response = await fetch(`${BASE_URL}/combustion/research-activity`);
@@ -85,7 +85,7 @@ export async function fetchResearchActivities() {
 }
 
 /**
- * Backward compatibility alias for combustion datasets
+ * Backward compatibility alias
  * @deprecated Use fetchCombustionDatasets instead
  */
 export const fetchSolarFlares = fetchCombustionDatasets;
