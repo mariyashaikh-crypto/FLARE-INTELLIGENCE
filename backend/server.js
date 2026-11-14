@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import flaresRouter from './routes/flares.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,6 +17,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Solar flare datasets route
+app.use('/api/flares', flaresRouter);
 
 // Start the server
 app.listen(PORT, () => {
