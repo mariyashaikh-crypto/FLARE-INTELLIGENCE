@@ -1,6 +1,6 @@
 /**
  * FLARE INTELLIGENCE - Frontend API Service Client
- * Handles communication with local backend endpoints.
+ * NASA "Flame in Freefall" Microgravity Combustion Intelligence Platform
  */
 
 const BASE_URL = '/api';
@@ -18,16 +18,41 @@ export async function checkHealth() {
 }
 
 /**
- * Fetch solar flare events from local dataset service
- * @param {object} [params] - Query parameters
- * @returns {Promise<any>}
+ * Fetch reference metadata for NASA's 5 microgravity combustion experiments
+ * (BASS-II, FLEX, SAFFIRE-I, SPICE, E-FIELD Flames)
  */
-export async function fetchSolarFlares(params = {}) {
-  const query = new URLSearchParams(params).toString();
-  const url = `${BASE_URL}/flares${query ? `?${query}` : ''}`;
-  const response = await fetch(url);
+export async function fetchCombustionExperiments() {
+  const response = await fetch(`${BASE_URL}/combustion/experiments`);
   if (!response.ok) {
-    throw new Error(`Failed to fetch solar flares: ${response.statusText}`);
+    throw new Error(`Failed to fetch combustion experiments: ${response.statusText}`);
   }
   return response.json();
 }
+
+/**
+ * Fetch list of indexed combustion datasets from configured Desktop/local path
+ */
+export async function fetchCombustionDatasets() {
+  const response = await fetch(`${BASE_URL}/combustion/datasets`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch combustion datasets: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetch summary statistics of dataset coverage across experiments
+ */
+export async function fetchCombustionSummary() {
+  const response = await fetch(`${BASE_URL}/combustion/summary`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch combustion summary: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Backward compatibility alias for combustion datasets
+ * @deprecated Use fetchCombustionDatasets instead
+ */
+export const fetchSolarFlares = fetchCombustionDatasets;

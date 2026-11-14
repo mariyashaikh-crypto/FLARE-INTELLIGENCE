@@ -1,29 +1,6 @@
-import express from 'express';
-import { getAvailableDatasets } from '../services/datasetService.js';
-
-const router = express.Router();
-
 /**
- * GET /api/flares
- * Returns summary of available local flare datasets
+ * Backward compatibility alias for combustion routes
  */
-router.get('/', (req, res) => {
-  try {
-    const datasets = getAvailableDatasets();
-    res.status(200).json({
-      status: 'ok',
-      totalDatasets: datasets.length,
-      datasets: datasets,
-      message: datasets.length === 0 
-        ? 'No local datasets found in data/ directory yet. Place NASA CSV/JSON files in the data folder.' 
-        : 'Datasets indexed successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message
-    });
-  }
-});
+import combustionRouter from './combustion.js';
 
-export default router;
+export default combustionRouter;

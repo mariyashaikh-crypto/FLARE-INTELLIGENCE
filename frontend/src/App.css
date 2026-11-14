@@ -68,3 +68,13 @@
   background-color: #fee2e2;
   color: #b91c1c;
 }
+
+.badge-warn {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #fef3c7;
+  color: #b45309;
+}
